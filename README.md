@@ -8,6 +8,11 @@ This is my custom fork of [Spotykach](https://synthux.academy/store/spotykach). 
   - Indicated by a cyan light
   - Params are Pitch->Decay Time, mix->wet level, pos->damping(lpf cutoff; higher = darker)
   - Sounds okay, totally usable but could use some additional tuning.
+- Resonant DJ-style HPF/LPF
+  - 4 pole, 24db/oct
+  - `alt+pos` controls cutoff, `alt+glow` controls resonance
+  - The filter sits between grit and flux in the signal chain.
+  - Turnh cutoff clockwise for hpf, CCW for LPF. There is a virtual notch at 12 o' clock to bypass the filter
 
 ## Setup
 
