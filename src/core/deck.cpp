@@ -48,6 +48,7 @@ void Deck::init(const Params p)
     Fx::Params fxp;
     fxp.sample_rate = p.sample_rate;
     fxp.delay_buf = p.delay_buf;
+    fxp.reverb_instance = p.reverb_instance;
     _fx.init(fxp);
 
     using namespace std::placeholders;

@@ -41,6 +41,7 @@ public:
         Buffer::Frame* main_buf;
         float** detect_buf;
         float** delay_buf;
+        daisysp::ReverbSc* reverb_instance;
         size_t* slice_buf;
     };
 

@@ -6,14 +6,18 @@ using namespace infrasonic;
 using namespace daisysp;
 
 Fx::Fx():
-_flux_int       { .5f },
-_flux_mix_norm  { .7f },
-_flux_fb        { .5f },
-_flux_on        { false },
-_flux_lock      { false },
-_grit_mode      { GritMode::Drive },
-_grit_on        { false },
-_grit_lock      { false }
+_flux_int          { .5f },
+_flux_mix_norm     { .7f },
+_flux_fb           { .5f },
+_reverb_int        { .35f },
+_reverb_mix_norm   { .5f },
+_reverb_fb         { .5f },
+_flux_mode         { FluxMode::Echo },
+_flux_on           { false },
+_flux_lock         { false },
+_grit_mode         { GritMode::Drive },
+_grit_on           { false },
+_grit_lock         { false }
 {}
 
 void Fx::init(const Params p)
@@ -23,6 +27,7 @@ void Fx::init(const Params p)
         _echo_delay[i].Init(p.sample_rate, p.delay_buf[i]);
         _echo_delay[i].SetLagTime(0.5f);
     }
+    _reverb.init(p.sample_rate, p.reverb_instance);
     _apply_flux_int(true);
     _apply_flux_mix();
     _apply_flux_fb();
@@ -34,14 +39,29 @@ void Fx::init(const Params p)
     set_grit_mix(_drive.mix());
 }
 
-void Fx::switch_grit_mode() 
+void Fx::switch_grit_mode()
 {
     if (_grit_mode == GritMode::Drive) {
         _grit_mode = GritMode::Reduce;
-    } 
+    }
     else {
         _grit_mode = GritMode::Drive;
     }
+}
+
+void Fx::switch_flux_mode()
+{
+    if (_flux_mode == FluxMode::Echo) {
+        _flux_mode = FluxMode::Reverb;
+    }
+    else {
+        _flux_mode = FluxMode::Echo;
+    }
+}
+
+void Fx::set_flux_mode(const FluxMode mode)
+{
+    _flux_mode = mode;
 }
 void Fx::set_grit_on(const bool on) 
 {
@@ -98,10 +118,27 @@ void Fx::toggle_flux_lock()
     _flux_lock = !_flux_lock;
     _flux_switch.set_on(_flux_on || _flux_lock);
 }
-void Fx::set_flux_intensity(const float norm) 
+void Fx::set_flux_intensity(const float norm)
 {
-    _flux_int = fclamp(norm, 0.f, 1.f);
-    _apply_flux_int();
+    auto clamped = fclamp(norm, 0.f, 1.f);
+    switch (_flux_mode) {
+        case FluxMode::Echo:
+            _flux_int = clamped;
+            _apply_flux_int();
+            break;
+        case FluxMode::Reverb:
+            _reverb_int = clamped;
+            _reverb.set_intensity(clamped);
+            break;
+    }
+}
+float Fx::flux_intensity() const
+{
+    switch (_flux_mode) {
+        case FluxMode::Echo:   return _flux_int;
+        case FluxMode::Reverb: return _reverb_int;
+        default:               return 0.f;
+    }
 }
 void Fx::_apply_flux_int(const bool hard)
 {
@@ -110,8 +147,25 @@ void Fx::_apply_flux_int(const bool hard)
 }
 void Fx::set_flux_fb(const float norm)
 {
-    _flux_fb = fclamp(norm, 0.f, 1.f);
-    _apply_flux_fb();
+    auto clamped = fclamp(norm, 0.f, 1.f);
+    switch (_flux_mode) {
+        case FluxMode::Echo:
+            _flux_fb = clamped;
+            _apply_flux_fb();
+            break;
+        case FluxMode::Reverb:
+            _reverb_fb = clamped;
+            _reverb.set_fb(clamped);
+            break;
+    }
+}
+float Fx::flux_fb() const
+{
+    switch (_flux_mode) {
+        case FluxMode::Echo:   return _flux_fb;
+        case FluxMode::Reverb: return _reverb_fb;
+        default:               return 0.f;
+    }
 }
 void Fx::_apply_flux_fb()
 {
@@ -119,8 +173,25 @@ void Fx::_apply_flux_fb()
 }
 void Fx::set_flux_mix(const float norm)
 {
-    _flux_mix_norm = fclamp(norm, 0.0f, 1.0f);
-    _apply_flux_mix();
+    auto clamped = fclamp(norm, 0.f, 1.f);
+    switch (_flux_mode) {
+        case FluxMode::Echo:
+            _flux_mix_norm = clamped;
+            _apply_flux_mix();
+            break;
+        case FluxMode::Reverb:
+            _reverb_mix_norm = clamped;
+            _reverb.set_mix(clamped);
+            break;
+    }
+}
+float Fx::flux_mix() const
+{
+    switch (_flux_mode) {
+        case FluxMode::Echo:   return _flux_mix_norm;
+        case FluxMode::Reverb: return _reverb_mix_norm;
+        default:               return 0.f;
+    }
 }
 void Fx::_apply_flux_mix()
 {
@@ -143,8 +214,21 @@ void Fx::process(float& inout0, float& inout1)
     }
 
     auto send = _flux_switch.process();
-    for (auto i = 0; i < 2; i++) {
-        out[i] += _echo_delay[i].Process(out[i] * send) * _flux_mix;
+    switch (_flux_mode) {
+        case FluxMode::Echo:
+            for (auto i = 0; i < 2; i++) {
+                out[i] += _echo_delay[i].Process(out[i] * send) * _flux_mix;
+            }
+            break;
+        case FluxMode::Reverb: {
+            float wetL = out[0] * send;
+            float wetR = out[1] * send;
+            _reverb.process(wetL, wetR);
+            const float rmix = _reverb.mix_lin();
+            out[0] += wetL * rmix;
+            out[1] += wetR * rmix;
+            break;
+        }
     }
 
     inout0 = out[0];

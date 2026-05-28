@@ -20,6 +20,8 @@ public:
         infrasonic::CalibratedVOct::ReferenceReadings v_oct_a;
         infrasonic::CalibratedVOct::ReferenceReadings v_oct_b;
         uint8_t version = 1;
+        uint8_t flux_mode_a = 0;   // 0 = Echo, 1 = Reverb
+        uint8_t flux_mode_b = 0;
 
         bool operator != (const Data& other) const { return true; }
     };

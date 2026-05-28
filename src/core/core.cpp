@@ -12,8 +12,6 @@ Core::Core():
 _driver { Driver(_decks[Deck::A], _decks[Deck::B], _click, _panner, _mod.data()) }
 {
     _source.fill(Deck::Source::external);
-    _reverb_in.fill(0);
-    _reverb_out.fill(0);
     _bus.fill(0);
     _xfade.SetStage(.5f);
 };
@@ -37,7 +35,11 @@ void Core::init(const float sample_rate, const float callback_buffer_size) {
         { pool.delayBuffer(), pool.delayBuffer() },
         { pool.delayBuffer(), pool.delayBuffer() }
     };
-    static size_t* slice_buf[Deck::Count] = { 
+    static daisysp::ReverbSc* reverb_inst[Deck::Count] = {
+        pool.reverbInstance(),
+        pool.reverbInstance()
+    };
+    static size_t* slice_buf[Deck::Count] = {
         pool.slices_a(), pool.slices_b() 
     }; 
     static Event* track_buf[Deck::Count] = { 
@@ -54,6 +56,7 @@ void Core::init(const float sample_rate, const float callback_buffer_size) {
         p.main_buf = main_buf[d];
         p.detect_buf = detect_buf[d];
         p.delay_buf = delay_buf[d];
+        p.reverb_instance = reverb_inst[d];
         p.slice_buf = slice_buf[d];
         p.track_buf = track_buf[d];
         deck(ref).init(p);

@@ -16,6 +16,9 @@ LIBDAISY_DIR = lib/libDaisy
 DAISYSP_DIR = lib/DaisySP
 CMSIS_DSP_SRC_DIR = ${LIBDAISY_DIR}/Drivers/CMSIS-DSP/Source
 
+# Enable DaisySP-LGPL submodule (needed for daisysp::ReverbSc)
+USE_DAISYSP_LGPL = 1
+
 # Daisy Bootloader - SRAM Linkage
 APP_TYPE = BOOT_SRAM
 LDSCRIPT = alt_sram.lds

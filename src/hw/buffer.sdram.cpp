@@ -30,6 +30,17 @@ static float* _delayBufs[kDelayBufsCount] = {
     _dlyBuf2R
 };
 
+// Reverb //
+// daisysp::ReverbSc is ~400 KB (inline aux_[DSY_REVERBSC_MAX_SIZE]); placed in SDRAM.
+static daisysp::ReverbSc DSY_SDRAM_BSS _rvbInst1;
+static daisysp::ReverbSc DSY_SDRAM_BSS _rvbInst2;
+
+static constexpr size_t kReverbInstsCount = kDecksCount;
+static daisysp::ReverbSc* _reverbInsts[kReverbInstsCount] = {
+    &_rvbInst1,
+    &_rvbInst2
+};
+
 // Detector //
 static float DSY_SDRAM_BSS ALIGN32K _detectBuf1L[aligned(Detector::kWindow)];
 static float DSY_SDRAM_BSS ALIGN32K _detectBuf1R[aligned(Detector::kWindow)];
@@ -96,6 +107,12 @@ float* SDRAMBuffer::delayBuffer()
 {
     assert(_providedDelayBufCount < kDelayBufsCount);
     return _delayBufs[_providedDelayBufCount++];
+};
+
+daisysp::ReverbSc* SDRAMBuffer::reverbInstance()
+{
+    assert(_providedReverbInstCount < kReverbInstsCount);
+    return _reverbInsts[_providedReverbInstCount++];
 };
 
 uint8_t* SDRAMBuffer::card_buffer() const

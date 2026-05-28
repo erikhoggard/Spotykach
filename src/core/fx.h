@@ -3,6 +3,7 @@
 #include "../nocopy.h"
 #include "fx.drive.h"
 #include "fx.reduce.h"
+#include "fx.reverb.h"
 #include "biquad.h"
 #include "echo.h"
 #include "softswitch.h"
@@ -16,9 +17,15 @@ public:
         Reduce
     };
 
+    enum class FluxMode: uint8_t {
+        Echo,
+        Reverb
+    };
+
     struct Params {
         float sample_rate;
         float** delay_buf;
+        daisysp::ReverbSc* reverb_instance;
     };
 
     static constexpr size_t kFeedbackDelayBufferLength  { 10000 }; 
@@ -50,13 +57,17 @@ public:
     void set_flux_on(const bool);
     void toggle_flux_lock();
 
-    float flux_intensity() const { return _flux_int; };
+    FluxMode flux_mode() const { return _flux_mode; }
+    void switch_flux_mode();
+    void set_flux_mode(const FluxMode mode);
+
+    float flux_intensity() const;
     void set_flux_intensity(const float norm);
-    
-    float flux_mix() const { return _flux_mix_norm; };
+
+    float flux_mix() const;
     void set_flux_mix(const float norm);
-    
-    float flux_fb() const { return _flux_fb; };
+
+    float flux_fb() const;
     void set_flux_fb(const float norm);
     
 private:
@@ -68,6 +79,7 @@ private:
 
     Drive _drive;
     Reduce _reduce;
+    Reverb _reverb;
     infrasonic::EchoDelay<kEchoDelayBufferLength> _echo_delay[2];
     SoftSwitch _flux_switch;
     SoftSwitch _grit_switch;
@@ -76,6 +88,10 @@ private:
     float _flux_mix;
     float _flux_mix_norm;
     float _flux_fb;
+    float _reverb_int;
+    float _reverb_mix_norm;
+    float _reverb_fb;
+    FluxMode _flux_mode;
     bool _flux_on;
     bool _flux_lock;
 

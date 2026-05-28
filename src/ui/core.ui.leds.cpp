@@ -19,6 +19,7 @@ static constexpr uint32_t kDriftColor    = 0xc850ff;
 static constexpr uint32_t kDelayColor    = 0xFF6565;
 static constexpr uint32_t kSoftFxColor   = 0xFFD524;
 static constexpr uint32_t kHarshFxColor  = 0xFF9A24;
+static constexpr uint32_t kReverbColor   = 0x65D5FF;  // light cyan
 
 static constexpr std::array<uint32_t, kStorageTapeCount> kTapeColor = {
     // Lexicographically ordered colors, 
@@ -69,6 +70,13 @@ static uint32_t grit_color(const Fx::GritMode mode)
       switch (mode) {
         case Fx::GritMode::Reduce: return kHarshFxColor;
         default: return kSoftFxColor;
+    }
+}
+static uint32_t flux_color(const Fx::FluxMode mode)
+{
+    switch (mode) {
+        case Fx::FluxMode::Reverb: return kReverbColor;
+        default:                   return kDelayColor;
     }
 }
 
@@ -214,7 +222,7 @@ void CoreUI::_draw_fx(const Deck::Ref ref)
     auto grit_id = ref == Deck::A ? Hardware::LED_GRIT_A : Hardware::LED_GRIT_B;
     auto flux_id = ref == Deck::A ? Hardware::LED_FLUX_A : Hardware::LED_FLUX_B;
     _led[grit_id].on(grit_color(fx.grit_mode()), fx.is_grit_on() ? 1.f : 0.5f);
-    _led[flux_id].on(kDelayColor, fx.is_flux_on() ? 1.f : 0.5f);
+    _led[flux_id].on(flux_color(fx.flux_mode()), fx.is_flux_on() ? 1.f : 0.5f);
 }
 void CoreUI::_draw_play(const Deck::Ref ref, const bool blink)
 {
@@ -344,10 +352,11 @@ void CoreUI::_draw_ring(const Deck::Ref ref)
         _show_value(_grit_mix[ref], ring, fx_color);
     }
     else if (_touched.test(ref == Deck::A ? FluxA : FluxB)) {
-        _show_value(_flux_intens[ref], ring, kDelayColor, ValueDisplay::Always);
-        _show_value(_flux_mix[ref], ring, kDelayColor);
-        _show_value(_flux_fb[ref], ring, kDelayColor);
-    } 
+        const auto fc = flux_color(deck.fx().flux_mode());
+        _show_value(_flux_intens[ref], ring, fc, ValueDisplay::Always);
+        _show_value(_flux_mix[ref], ring, fc);
+        _show_value(_flux_fb[ref], ring, fc);
+    }
     else if (deck.is_empty() && !deck.is_armed()) { 
         ring.set_hex_color(default_color);
         ring.set_brightness(_led_breathe_brightness * .5f);
