@@ -2,8 +2,8 @@
 This is my custom fork of [Spotykach](https://synthux.academy/store/spotykach). Some of the features here might be weird or unintuitive, so use at your own risk!
 
 ## Changes From Stock Firmware
-- If CV switch is in the middle position, the incoming CV will control pos, and v/oct will control size instead of pitch.
-  - This allows for simultaneous separate CV controls over size and pos.
+- Simultaneous independent CV modulation of pos and size
+  - If CV switch is in the middle position, the incoming CV will control pos, and v/oct will control size instead of pitch.
 - Reverb (via DaisySp ReverbSc) available as a flux effect
   - Indicated by a cyan light
   - Params are Pitch->Decay Time, mix->wet level, pos->damping(lpf cutoff; higher = darker)
