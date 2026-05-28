@@ -278,13 +278,23 @@ void CoreUI::read_cv() {
     auto cor_pos_size_mod_a = _calibrator.correct(Hardware::CV_SIZE_POS_A, pos_size_mod_a);
     cor_pos_size_mod_a = std::round(cor_pos_size_mod_a * 1000.f) / 1000.f;
 
-    deck_a.size_mod_in(cor_pos_size_mod_a);
-    deck_a.start_mod_in(cor_pos_size_mod_a);
-
     auto raw_cv_a = _hw.GetControlVoltageValue(Hardware::CV_V_OCT_A);
-    auto voct_a = _calibrator.correctVOctA(raw_cv_a);
-    _speed_mult[Deck::A] = _speed_map.bipolar_pitch2speed(voct_a);
-    deck_a.voxs().pitch_speed_mod_in(_speed_mult[Deck::A]);
+
+    if (deck_a.is_pos_size_split()) {
+        deck_a.start_mod_in(cor_pos_size_mod_a);
+        auto length_mod_a = _calibrator.correct(Hardware::CV_V_OCT_A, raw_cv_a);
+        length_mod_a = std::round(length_mod_a * 1000.f) / 1000.f;
+        deck_a.size_mod_in(length_mod_a);
+        _speed_mult[Deck::A] = _speed_map.bipolar_pitch2speed(0.f);
+        deck_a.voxs().pitch_speed_mod_in(_speed_mult[Deck::A]);
+    }
+    else {
+        deck_a.size_mod_in(cor_pos_size_mod_a);
+        deck_a.start_mod_in(cor_pos_size_mod_a);
+        auto voct_a = _calibrator.correctVOctA(raw_cv_a);
+        _speed_mult[Deck::A] = _speed_map.bipolar_pitch2speed(voct_a);
+        deck_a.voxs().pitch_speed_mod_in(_speed_mult[Deck::A]);
+    }
 
     auto& deck_b = _core.deck(Deck::B);
 
@@ -295,13 +305,24 @@ void CoreUI::read_cv() {
     auto pos_size_mod_b = _hw.GetControlVoltageValue(Hardware::CV_SIZE_POS_B);
     auto cor_pos_size_mod_b = _calibrator.correct(Hardware::CV_SIZE_POS_B, pos_size_mod_b);
     cor_pos_size_mod_b = std::round(cor_pos_size_mod_b * 1000.f) / 1000.f;
-    deck_b.size_mod_in(cor_pos_size_mod_b);
-    deck_b.start_mod_in(cor_pos_size_mod_b);
 
     auto raw_cv_b = _hw.GetControlVoltageValue(Hardware::CV_V_OCT_B);
-    auto voct_b = _calibrator.correctVOctB(raw_cv_b);
-    _speed_mult[Deck::B] = _speed_map.bipolar_pitch2speed(voct_b);
-    deck_b.voxs().pitch_speed_mod_in(_speed_mult[Deck::B]);
+
+    if (deck_b.is_pos_size_split()) {
+        deck_b.start_mod_in(cor_pos_size_mod_b);
+        auto length_mod_b = _calibrator.correct(Hardware::CV_V_OCT_B, raw_cv_b);
+        length_mod_b = std::round(length_mod_b * 1000.f) / 1000.f;
+        deck_b.size_mod_in(length_mod_b);
+        _speed_mult[Deck::B] = _speed_map.bipolar_pitch2speed(0.f);
+        deck_b.voxs().pitch_speed_mod_in(_speed_mult[Deck::B]);
+    }
+    else {
+        deck_b.size_mod_in(cor_pos_size_mod_b);
+        deck_b.start_mod_in(cor_pos_size_mod_b);
+        auto voct_b = _calibrator.correctVOctB(raw_cv_b);
+        _speed_mult[Deck::B] = _speed_map.bipolar_pitch2speed(voct_b);
+        deck_b.voxs().pitch_speed_mod_in(_speed_mult[Deck::B]);
+    }
 
     auto mix_mod = _hw.GetControlVoltageValue(Hardware::CV_CROSSFADE);
     auto cor_mix_mod = _calibrator.correct(Hardware::CV_CROSSFADE, mix_mod);

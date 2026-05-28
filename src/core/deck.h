@@ -79,6 +79,7 @@ public:
     void set_size(const float);
     void size_mod_in(const float);
     void set_size_mod_on(const bool on);
+    bool is_pos_size_split() const { return _start_mod_on && _size_mod_on; }
 
     void apply_start_size();
 
