@@ -79,8 +79,6 @@ private:
 
   Route _route;
 
-  std::array<float, 2> _reverb_in;
-  std::array<float, 2> _reverb_out;
   std::array<float, 2> _bus;
 
   float _click_mix;

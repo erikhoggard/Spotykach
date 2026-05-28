@@ -140,6 +140,13 @@ void AppImpl::Init()
     _settings.init(_hw);
     _settings.read();
 
+    auto safe_flux_mode = [](uint8_t raw) {
+        return (raw == 1) ? Fx::FluxMode::Reverb : Fx::FluxMode::Echo;
+    };
+    auto& settings_data = _settings.data();
+    _core.deck(Deck::A).fx().set_flux_mode(safe_flux_mode(settings_data.flux_mode_a));
+    _core.deck(Deck::B).fx().set_flux_mode(safe_flux_mode(settings_data.flux_mode_b));
+
     _ui.calibrate(false);
 
     #ifdef METER

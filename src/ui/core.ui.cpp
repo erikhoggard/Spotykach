@@ -656,6 +656,24 @@ void CoreUI::_process_switches()
             _grit_intens[Deck::B].set(deck_b.fx().grit_intensity());
             _grit_mix[Deck::B].set(deck_b.fx().grit_mix());
         }
+        else if (_touched.test(FluxA)) {
+            deck_a.fx().switch_flux_mode();
+            _flux_intens[Deck::A].set(deck_a.fx().flux_intensity());
+            _flux_mix  [Deck::A].set(deck_a.fx().flux_mix());
+            _flux_fb   [Deck::A].set(deck_a.fx().flux_fb());
+            _settings.data().flux_mode_a =
+                static_cast<uint8_t>(deck_a.fx().flux_mode());
+            _settings.write();
+        }
+        else if (_touched.test(FluxB)) {
+            deck_b.fx().switch_flux_mode();
+            _flux_intens[Deck::B].set(deck_b.fx().flux_intensity());
+            _flux_mix  [Deck::B].set(deck_b.fx().flux_mix());
+            _flux_fb   [Deck::B].set(deck_b.fx().flux_fb());
+            _settings.data().flux_mode_b =
+                static_cast<uint8_t>(deck_b.fx().flux_mode());
+            _settings.write();
+        }
         else {
             auto& d = _core.driver();
             if (!d.is_external_sync()) {

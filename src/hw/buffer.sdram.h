@@ -3,6 +3,7 @@
 #include <assert.h>
 #include "dev/sdram.h"
 #include "daisy_seed.h"
+#include "daisysp.h"
 #include "nocopy.h"
 #include "config.h"
 #include "../core/track.h"
@@ -31,6 +32,8 @@ public:
 
     float* delayBuffer();
 
+    daisysp::ReverbSc* reverbInstance();
+
     float* detectorBuffer();
 
     Event* track_buffer_a() const;
@@ -50,5 +53,6 @@ private:
     size_t _providedSourceBufCount      { 0 };
     size_t _providedDetectorBufCount    { 0 };
     size_t _providedDelayBufCount       { 0 };
+    size_t _providedReverbInstCount     { 0 };
 };
 };
