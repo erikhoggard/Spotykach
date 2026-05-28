@@ -20,6 +20,7 @@ static constexpr uint32_t kDelayColor    = 0xFF6565;
 static constexpr uint32_t kSoftFxColor   = 0xFFD524;
 static constexpr uint32_t kHarshFxColor  = 0xFF9A24;
 static constexpr uint32_t kReverbColor   = 0x65D5FF;  // light cyan
+static constexpr uint32_t kFilterColor   = 0x39FF14;  // neon green
 
 static constexpr std::array<uint32_t, kStorageTapeCount> kTapeColor = {
     // Lexicographically ordered colors, 
@@ -458,6 +459,8 @@ void CoreUI::_draw_ring(const Deck::Ref ref)
     _show_value(_win[ref], ring);
     _show_value(_env[ref], ring);
     _show_value(_env_size[ref], ring);
+    _show_filter_cutoff(ref);
+    _show_value(_filter_reso[ref], ring, kFilterColor);
     _show_pitch(ref);
 
     if (_is_changing(_poly_slice[ref])) 
@@ -507,6 +510,42 @@ void CoreUI::_show_value(const MValue& val, LEDRing& ring, const uint32_t def_co
     ring.set_segment(start, end);
     ring.add_point(val.in_value(), .95f);
 }
+void CoreUI::_show_filter_cutoff(const Deck::Ref ref)
+{
+    const auto& mv = _filter_cutoff[ref];
+    if (!_is_changing(mv)) return;
+
+    auto& ring = _ring[ref];
+    static constexpr float kCenter = 0.5f;
+    static constexpr float kLpfHi  = 0.47f;
+    static constexpr float kHpfLo  = 0.53f;
+
+    ring.clear();
+    ring.set_brightness(.6f);
+    ring.set_hex_color(kFilterColor);
+
+    const float v = mv.value();
+    if (v < kLpfHi) {
+        ring.set_segment(v, kCenter);
+    }
+    else if (v > kHpfLo) {
+        ring.set_segment(kCenter, v);
+    }
+    else {
+        ring.set_point_hex_color(kFilterColor);
+        ring.add_point(kCenter, 1.f, true);
+    }
+
+    if (mv.is_tracking()) return;
+
+    ring.set_brightness(_led_breathe_brightness * .6f);
+    ring.set_hex_color(kRed);
+    auto start = std::min(mv.value(), mv.in_value());
+    auto end = std::max(mv.value(), mv.in_value());
+    ring.set_segment(start, end);
+    ring.add_point(mv.in_value(), .95f);
+}
+
 void CoreUI::_show_pitch(const Deck::Ref ref)
 {
     if (!_is_changing(_speed[ref])) return;
