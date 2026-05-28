@@ -92,6 +92,7 @@ private:
 
     void _draw_ring(const Deck::Ref);
     void _show_pitch(const Deck::Ref);
+    void _show_filter_cutoff(const Deck::Ref);
     void _show_slots(const Deck::Ref);
     void _show_key_intervals();
     void _show_size_quarters(const Deck::Ref, const uint32_t color);
@@ -168,7 +169,9 @@ private:
     std::array<MValue, Deck::Count> _flux_intens;
     std::array<MValue, Deck::Count> _grit_intens;
     std::array<MValue, Deck::Count>_flux_fb;
-    
+    std::array<MValue, Deck::Count> _filter_cutoff;
+    std::array<MValue, Deck::Count> _filter_reso;
+
     std::array<MValue, Deck::Count> _mix;
     std::array<MValue, Deck::Count> _feedback;
     std::array<MValue, Deck::Count> _speed;

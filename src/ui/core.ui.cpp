@@ -79,6 +79,9 @@ void CoreUI::_init_values()
         _flux_mix[ref].set(fx.flux_mix());
         _flux_intens[ref].set(fx.flux_intensity());
         _flux_fb[ref].set(fx.flux_fb());
+
+        _filter_cutoff[ref].set(0.5f);
+        _filter_reso[ref].set(0.3f);
     }
 
     _pan_range.set(.6f);
@@ -135,6 +138,9 @@ void CoreUI::process()
         if (_touched.test(FluxA)) {
             deck_a.fx().set_flux_fb(_flux_fb[Deck::A].value());
         }
+        else if (_touched.test(Alt) && !_touched.test(GritA)) {
+            deck_a.fx().set_filter_cutoff(_filter_cutoff[Deck::A].value());
+        }
         else {
             deck_a.set_start(_pos[Deck::A].value());
         }
@@ -142,6 +148,9 @@ void CoreUI::process()
     if (_apply.test(Hardware::CTRL_POS_B)) {
         if (_touched.test(FluxB)) {
             deck_b.fx().set_flux_fb(_flux_fb[Deck::B].value());
+        }
+        else if (_touched.test(Alt) && !_touched.test(GritB)) {
+            deck_b.fx().set_filter_cutoff(_filter_cutoff[Deck::B].value());
         }
         else {
             deck_b.set_start(_pos[Deck::B].value());
@@ -217,6 +226,7 @@ void CoreUI::process()
     }
     if (_apply.test(Hardware::CTRL_MOD_AMT_A)) {
         if (_tap_hold.passed()) _core.set_click_mix(_click_mix.value());
+        else if (_touched.test(Alt)) deck_a.fx().set_filter_resonance(_filter_reso[Deck::A].value());
         else _core.mod(Deck::A).set_amp_norm(_mod_amp[Deck::A].value());
     }
     if (_apply.test(Hardware::CTRL_MODFREQ_B)) {
@@ -225,6 +235,7 @@ void CoreUI::process()
     }
     if (_apply.test(Hardware::CTRL_MOD_AMT_B)) {
         if (_tap_hold.passed()) _core.panner().set_range(_pan_range.value());
+        else if (_touched.test(Alt)) deck_b.fx().set_filter_resonance(_filter_reso[Deck::B].value());
         else _core.mod(Deck::B).set_amp_norm(_mod_amp[Deck::B].value());
     }
     if (_apply.test(Hardware::CTRL_SOS_A)) {
@@ -430,8 +441,9 @@ void CoreUI::_process_ui_queue()
                     break;
 
                 case Hardware::CTRL_POS_A:
-                    _pos[Deck::A].process(val, !fx_a_touched, changing_id_a);
+                    _pos[Deck::A].process(val, !fx_a_touched && !is_alt_touched, changing_id_a);
                     _flux_fb[Deck::A].process(val, _touched.test(FluxA), changing_id_a);
+                    _filter_cutoff[Deck::A].process(val, !fx_a_touched && is_alt_touched, changing_id_a);
                     break;
 
                 case Hardware::CTRL_ENV_A: 
@@ -464,9 +476,10 @@ void CoreUI::_process_ui_queue()
                     _mod_speed[Deck::A].process(val, !_tap_hold.passed(), changing_id_a);
                     break;
 
-                case Hardware::CTRL_MOD_AMT_A: 
+                case Hardware::CTRL_MOD_AMT_A:
                     _click_mix.process(val, _tap_hold.passed(), changing_id_a);
-                    _mod_amp[Deck::A].process(val, !_tap_hold.passed(), changing_id_a);
+                    _mod_amp[Deck::A].process(val, !_tap_hold.passed() && !is_alt_touched, changing_id_a);
+                    _filter_reso[Deck::A].process(val, !_tap_hold.passed() && is_alt_touched, changing_id_a);
                     break;
 
                 // DECK B //////////////////////////////////////
@@ -506,8 +519,9 @@ void CoreUI::_process_ui_queue()
                     break;
 
                 case Hardware::CTRL_POS_B:
-                    _pos[Deck::B].process(val, !fx_b_touched, changing_id_b);
+                    _pos[Deck::B].process(val, !fx_b_touched && !is_alt_touched, changing_id_b);
                     _flux_fb[Deck::B].process(val, _touched.test(FluxB), changing_id_b);
+                    _filter_cutoff[Deck::B].process(val, !fx_b_touched && is_alt_touched, changing_id_b);
                     break;
 
                 case Hardware::CTRL_ENV_B: 
@@ -544,7 +558,8 @@ void CoreUI::_process_ui_queue()
 
                 case Hardware::CTRL_MOD_AMT_B:
                     _pan_range.process(val, _tap_hold.passed(), changing_id_b);
-                    _mod_amp[Deck::B].process(val, !_tap_hold.passed(), changing_id_b);
+                    _mod_amp[Deck::B].process(val, !_tap_hold.passed() && !is_alt_touched, changing_id_b);
+                    _filter_reso[Deck::B].process(val, !_tap_hold.passed() && is_alt_touched, changing_id_b);
                     break;
 
                 case Hardware::CTRL_CROSSFADE:

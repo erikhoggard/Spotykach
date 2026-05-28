@@ -4,6 +4,7 @@
 #include "fx.drive.h"
 #include "fx.reduce.h"
 #include "fx.reverb.h"
+#include "fx.filter.h"
 #include "biquad.h"
 #include "echo.h"
 #include "softswitch.h"
@@ -69,7 +70,14 @@ public:
 
     float flux_fb() const;
     void set_flux_fb(const float norm);
-    
+
+    // FILTER /////////////////////////////////////////
+    void  set_filter_cutoff(const float norm);
+    float filter_cutoff() const;
+
+    void  set_filter_resonance(const float norm);
+    float filter_resonance() const;
+
 private:
     NOCOPY(Fx)
 
@@ -80,6 +88,7 @@ private:
     Drive _drive;
     Reduce _reduce;
     Reverb _reverb;
+    Filter _filter;
     infrasonic::EchoDelay<kEchoDelayBufferLength> _echo_delay[2];
     SoftSwitch _flux_switch;
     SoftSwitch _grit_switch;

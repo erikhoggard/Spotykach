@@ -37,6 +37,10 @@ void Fx::init(const Params p)
     _reduce.init(p.sample_rate);
     set_grit_intensity(_drive.intensity());
     set_grit_mix(_drive.mix());
+
+    _filter.init(p.sample_rate);
+    _filter.set_cutoff(0.5f);
+    _filter.set_resonance(0.3f);
 }
 
 void Fx::switch_grit_mode()
@@ -213,6 +217,8 @@ void Fx::process(float& inout0, float& inout1)
         out[1] = grit[1] * grit_kof + out[1] * (1.f - grit_kof);
     }
 
+    _filter.process(out[0], out[1]);
+
     auto send = _flux_switch.process();
     switch (_flux_mode) {
         case FluxMode::Echo:
@@ -233,4 +239,24 @@ void Fx::process(float& inout0, float& inout1)
 
     inout0 = out[0];
     inout1 = out[1];
+}
+
+void Fx::set_filter_cutoff(const float norm)
+{
+    _filter.set_cutoff(fclamp(norm, 0.f, 1.f));
+}
+
+float Fx::filter_cutoff() const
+{
+    return _filter.cutoff();
+}
+
+void Fx::set_filter_resonance(const float norm)
+{
+    _filter.set_resonance(fclamp(norm, 0.f, 1.f));
+}
+
+float Fx::filter_resonance() const
+{
+    return _filter.resonance();
 }
